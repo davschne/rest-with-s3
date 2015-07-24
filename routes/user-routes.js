@@ -1,11 +1,5 @@
 var User = require("../models/User");
-
-var handle = {
-  500: function(err, res) {
-    console.log(err);
-    res.status(500).json({msg: "Server error", err: err});
-  }
-};
+var handle = require("./handle");
 
 module.exports = function(router) {
   router.route("/")
