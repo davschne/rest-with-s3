@@ -32,12 +32,14 @@ module.exports = function(router) {
     .get(function(req, res) {
       var id = req.params.user;
       console.log("GET request at /users/" + id);
-      User.findById(id, function(err, data) {
-        if (err) handle[500](err, res);
-        else {
-          console.log("Successful response to GET request at /users/" + id);
-          res.json(data);
-        }
+      User.findById(id)
+        .populate('files')
+        .exec(function(err, data) {
+          if (err) handle[500](err, res);
+          else {
+            console.log("Successful response to GET request at /users/" + id);
+            res.json(data);
+          }
       });
       // User.findById(id)
       //   .populate("files")

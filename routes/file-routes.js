@@ -20,7 +20,8 @@ module.exports = function(router) {
       User.findById(userid, function(err, user) {
         if (err) handle[500](err, res);
         else {
-          user.files.push(req.body);
+          var file = new File(req.body);
+          user.files.push(file);
           user.save(function(err, data) {
             if (err) handle[500](err, res);
             console.log("Successful response to POST request at /user/" + userid + "/files")
