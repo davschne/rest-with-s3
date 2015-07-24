@@ -38,18 +38,7 @@ describe("index.js", function() {
     });
   });
   describe("/users/:user", function() {
-    it("should respond to a well-formed GET request with status 200 and the record of the requested user as JSON", function(done) {
-      chai.request(url)
-        .get("/users/" + id)
-        .end(function(err, res) {
-          expect(err).to.be.null;
-          expect(res).to.have.status(200);
-          expect(res).to.be.json;
-          expect(res.body).to.have.property("name", "Dummy");
-          done();
-        });
-    });
-    it("should respond to a well-formed PUT request with status 200 and a JSON response", function(done) {
+    it("should respond to a well-formed PUT request with status 200 and the record being replaced as JSON", function(done) {
       chai.request(url)
         .put("/users/" + id)
         .type("json")
@@ -58,6 +47,18 @@ describe("index.js", function() {
           expect(err).to.be.null;
           expect(res).to.have.status(200);
           expect(res).to.be.json;
+          expect(res.body).to.have.property("name", "Dummy");
+          done();
+        });
+    });
+    it("should respond to a well-formed GET request with status 200 and the record of the requested user as JSON", function(done) {
+      chai.request(url)
+        .get("/users/" + id)
+        .end(function(err, res) {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.have.property("name", "Dumbo");
           done();
         });
     });

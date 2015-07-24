@@ -47,18 +47,18 @@ module.exports = function(router) {
     .put(function(req, res) {
       var id = req.params.user;
       console.log("PUT request at /users/" + id);
-      User.update({_id: id}, function(err, raw) {
+      User.findByIdAndUpdate(id, req.body, function(err, data) {
         if (err) handle[500](err, res);
         else {
           console.log("Successful response to PUT request at /users/" + id);
-          res.json(raw);
+          res.json(data);
         }
       });
     })
     .delete(function(req, res) {
       var id = req.params.user;
       console.log("DELETE request at /users/" + id);
-      User.remove({_id: id}, function(err, data) {
+      User.findByIdAndRemove(id, function(err, data) {
         if (err) handle[500](err, res);
         else {
           console.log("Successful response to DELETE request at /users/" + id);
