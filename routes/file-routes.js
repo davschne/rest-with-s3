@@ -60,10 +60,9 @@ module.exports = function(router) {
     .put(function(req, res) {
       var userid = req.params.user;
       var fileid = req.params.file;
-      User.findOneAndUpdate({_id: userid, "files._id": fileid},
-        {"$set":
-          {"files.$": req.body}
-        },
+      User.findOneAndUpdate(
+        {_id: userid, "files._id": fileid},
+        {"$set": {"files.$": req.body} },
         function(err, data) {
           if (err) handle[500](err, res);
           else {
