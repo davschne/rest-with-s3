@@ -22,6 +22,10 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost/rest-with-s3", fu
   else console.log("Opened connection to MongoDB");
 });
 
+process.on("exit", function() {
+  mongoose.disconnect();
+});
+
 app.listen(app.get("port"), function() {
   console.log("Server running on port " + app.get("port"));
 });
