@@ -7,8 +7,9 @@ var Schema = mongoose.Schema;
 // });
 
 var userSchema = Schema({
-  name: String,
-  files: [{type: Schema.Types.ObjectId, ref: "File"}]
+  _id: {type: String, unique: true, required: true},
+  email: String,
+  files: [{type: String, ref: "File"}]
 });
 
 module.exports = mongoose.model("User", userSchema);

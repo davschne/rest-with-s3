@@ -1,7 +1,7 @@
 var User = require("../models/User");
 var handle = require("./handle");
 
-module.exports = function(router) {
+module.exports = function(router, s3) {
   router.route("/")
     .get(function(req, res) {
       console.log("GET request at /users");

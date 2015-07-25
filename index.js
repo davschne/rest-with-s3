@@ -4,13 +4,13 @@ var bodyParser = require("body-parser");
 var AWS = require("aws-sdk");
 var mongoose = require("mongoose");
 
-var s3 = new AWS.S3();
+var s3 = new AWS.S3({params: {Bucket: "davschne"}});
 
 var userRouter = express.Router();
 var fileRouter = express.Router();
 
-require("./routes/user-routes")(userRouter);
-require("./routes/file-routes")(fileRouter);
+require("./routes/user-routes")(userRouter, s3);
+require("./routes/file-routes")(fileRouter, s3);
 
 app.set("port", process.env.PORT || 5000);
 

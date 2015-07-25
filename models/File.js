@@ -2,7 +2,7 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var fileSchema = Schema({
-  name: String,
+  _id: {type: String, unique: true, required: true},
   URI: String
 });
 

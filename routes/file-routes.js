@@ -2,21 +2,24 @@ var User = require("../models/User");
 var File = require("../models/File");
 var handle = require("./handle");
 
-module.exports = function(router) {
+module.exports = function(router, s3) {
 
   router.route("/:user/files")
     .get(function(req, res) {
       var userid = req.params.user;
-      User.findById(userid, function(err, data) {
-        if (err) handle[500](err, res);
-        else {
-          console.log("Successful response to GET request at /user/" + userid + "/files")
-          res.json(data.files);
-        }
+      User.findById(userid)
+        .populate("files")
+        .exec(function(err, data) {
+          if (err) handle[500](err, res);
+          else {
+            console.log("Successful response to GET request at /user/" + userid + "/files")
+            res.json(data.files);
+          }
       });
     })
     .post(function(req, res) {
       var userid = req.params.user;
+      var params = {Key: userid + "/", Body: req.body};
       User.findById(userid, function(err, user) {
         if (err) handle[500](err, res);
         else {
