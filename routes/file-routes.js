@@ -67,8 +67,8 @@ module.exports = function(router, s3) {
           files: {}
         }
       })
-      .exec(function(err, foundUser) {
-        if (err) throw err;
+      .exec()
+      .then(function(foundUser) {
         user = foundUser;
       })
       // User.findById(userid)
@@ -132,15 +132,25 @@ module.exports = function(router, s3) {
 
   router.route("/:user/files/:file")
     .get(function(req, res) {
-      var userid = req.params.user;
-      var fileid = req.params.file;
-      User.findById(userid, function(err, user) {
-        if (err) handle[500](err, res);
-        else {
-          console.log("Successful response to GET request at /user/" + userid + "/files/" + fileid);
-          res.json(user.files.id(fileid));
-        }
-      });
+      var fullpath = req.params.user + "/" + req.params.file;
+      var file;
+      var url;
+      File.findById(fullpath)
+        .exec(function(err, foundFile) {
+          if (err) handle[500](err, res);
+          else if (!file) handle[404](new Error(fullpath + " not found"), res);
+          else file = foundFile.toObject();
+        })
+        .then(function() {
+          return s3.getSignedUrl("getObject", {Key: fullpath}, function(err, foundUrl) {
+            if (err) handle[500](err, res);
+            else url = foundUrl;
+          });
+        })
+        .then(function() {
+          file.URL = url;
+          res.json(file);
+        });
     })
     .put(function(req, res) {
       var userid = req.params.user;
