@@ -6,8 +6,8 @@ var app = require("../index");
 
 chai.use(require("chai-http"));
 
-var dummyUser = {"name": "Dummy", "files": []};
-var dummyFile = {"name": "test-file.txt", "content": "Hi, mom!"};
+var dummyUser = {"_id": "Dummy", "email": "dummy@dumb.com", "files": []};
+var dummyFile = {"_id": "test-file.txt", "content": "Hi, mom!"};
 
 // capture on POST for later use
 var userid;
