@@ -132,13 +132,15 @@ module.exports = function(router, s3) {
 
   router.route("/:user/files/:file")
     .get(function(req, res) {
-      var fullpath = req.params.user + "/" + req.params.file;
+      var userid = req.params.user;
+      var fileid = req.params.file;
+      var fullpath = userid + "/" + fileid;
       var file;
       var url;
       File.findById(fullpath)
         .exec(function(err, foundFile) {
           if (err) handle[500](err, res);
-          else if (!file) handle[404](new Error(fullpath + " not found"), res);
+          else if (!foundFile) handle[404](new Error(fullpath + " not found"), res);
           else file = foundFile.toObject();
         })
         .then(function() {
@@ -149,6 +151,7 @@ module.exports = function(router, s3) {
         })
         .then(function() {
           file.URL = url;
+          console.log("Successful response to GET request at /user/" + userid + "/files/" + fileid);
           res.json(file);
         });
     })
@@ -184,18 +187,32 @@ module.exports = function(router, s3) {
     .delete(function(req, res) {
       var userid = req.params.user;
       var fileid = req.params.file;
-      User.findById(userid, function(err, user) {
+      var fullpath = userid + "/" + fileid;
+      var file;
+      User.findByIdAndUpdate(userid, {
+        $pull: {files: fullpath}
+      })
+      .exec(function(err, data) {
         if (err) handle[500](err, res);
-        else {
-          var file = user.files.id(fileid).remove();
-          user.save(function(err, data) {
+      })
+      .then(function() {
+        return File.findByIdAndRemove(fullpath)
+          .exec(function(err, foundFile) {
             if (err) handle[500](err, res);
+            else if (!foundFile) handle[404](new Error("File " + fileid + " not found"), res);
             else {
-              console.log("Successful response to DELETE request at /user/" + userid + "/files/" + fileid);
-              res.json(file);
+              file = foundFile.toObject();
             }
           });
-        }
+      })
+      .then(function() {
+        return s3.deleteObject({Key: fullpath}, function(err, data) {
+          if (err) handle[500](err, res);
+        });
+      })
+      .then(function() {
+        console.log("Successful response to DELETE request at /user/" + userid + "/files/" + fileid);
+        res.json(file);
       });
     });
 };
