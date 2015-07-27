@@ -5,9 +5,6 @@ module.exports = function(router, s3) {
   router.route("/")
     .get(function(req, res) {
       console.log("GET request at /users");
-      // User.find({})
-      //   .stream({"transform": JSON.stringify})
-      //   .pipe(res);
       User.find({}, function(err, data) {
         if (err) handle[500](err, res);
         else {
@@ -41,10 +38,6 @@ module.exports = function(router, s3) {
             res.json(data);
           }
       });
-      // User.findById(id)
-      //   .populate("files")
-      //   .stream({transform: JSON.stringify})
-      //   .pipe(res);
     })
     .put(function(req, res) {
       var id = req.params.user;
