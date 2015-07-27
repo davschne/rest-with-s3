@@ -1,13 +1,10 @@
 var User = require("../models/User");
 var handle = require("./handle");
 
-module.exports = function(router) {
+module.exports = function(router, s3) {
   router.route("/")
     .get(function(req, res) {
       console.log("GET request at /users");
-      // User.find({})
-      //   .stream({"transform": JSON.stringify})
-      //   .pipe(res);
       User.find({}, function(err, data) {
         if (err) handle[500](err, res);
         else {
@@ -32,17 +29,15 @@ module.exports = function(router) {
     .get(function(req, res) {
       var id = req.params.user;
       console.log("GET request at /users/" + id);
-      User.findById(id, function(err, data) {
-        if (err) handle[500](err, res);
-        else {
-          console.log("Successful response to GET request at /users/" + id);
-          res.json(data);
-        }
+      User.findById(id)
+        .populate('files')
+        .exec(function(err, data) {
+          if (err) handle[500](err, res);
+          else {
+            console.log("Successful response to GET request at /users/" + id);
+            res.json(data);
+          }
       });
-      // User.findById(id)
-      //   .populate("files")
-      //   .stream({transform: JSON.stringify})
-      //   .pipe(res);
     })
     .put(function(req, res) {
       var id = req.params.user;
