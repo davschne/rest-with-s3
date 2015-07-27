@@ -62,72 +62,44 @@ module.exports = function(router, s3) {
       var userid = req.params.user;
       var user;
       var files;
-      User.findByIdAndUpdate(userid, {
-        $pull: {
-          files: {}
-        }
-      })
-      .exec()
-      .then(function(foundUser) {
-        user = foundUser;
-      })
-      // User.findById(userid)
-      //   .exec()
-      //   .then(function(foundUser) {
-          // Remove file documents
-          // user = foundUser;
-          // files = user.files;
-          // var query = files.reduce(function(acc, curr) {
-          //   acc = acc.remove(curr)
-          // })
-          // for (var i = 0; i < files.length; i++) {
-          //   files[i].remove().exec();            // PROBLEM IS HERE, I THINK
-          // }
-          // Remove references to files in user document
-          // user.files = [];
-          // user.save();
-        // })
-      .then(function() {
-        return File.remove({_creator: userid}).exec();
-      })
-      .then(function() {
-        // Delete files from AWS
-        files = user.files;
-        var objects = [];
-        for (var i = 0; i < files.length; i++) {
-          var current = {
-            Key: files[i]._id
-          };
-          objects.push(current);
-        }
-        s3.deleteObjects({
-          Delete: {
-            Objects: objects
-          }
-        }, function(err, data) {
-          if (err) throw err;
-          else return;
+      File.find({_creator: userid})
+        .remove(function(err, data) {
+          // Remove File records
+          if (err) handle[500](err, res);
+          User.findByIdAndUpdate(userid, {
+            // Remove references in User record
+            $set: {files: []}
+          })
+          .exec(function(err, foundUser) {
+            if (err) handle[500](err, res);
+            else if (!foundUser) handle[404](new Error("User " + userid + " not found"), res);
+            else {
+              user = foundUser.toObject();
+            }
+          })
+          .then(function() {
+            // Delete files from AWS
+            files = user.files;
+            var objects = [];
+            for (var i = 0; i < files.length; i++) {
+              var current = {
+                Key: files[i]
+              };
+              objects.push(current);
+            }
+            s3.deleteObjects({
+              Delete: {
+                Objects: objects
+              }
+            }, function(err, data) {
+              if (err) handle[500](err, res);
+            });
+          })
+          .then(function() {
+            console.log("Successful response to DELETE request at /user/" + userid + "/files")
+            res.json(files);
+          });
         });
-      })
-      .then(function() {
-        // Send response
-        console.log("Successful response to DELETE request at /user/" + userid + "/files");
-        res.json(files);
-      }, function(err) {
-        handle[500](err, res);
-      });
-      // , function(err, user) {
-      //   if (err) handle[500](err, res);
-      //   else {
-      //     var files = user.files;
-      //     user.files = [];
-      //     user.save(function(err, data) {
-      //       if (err) handle[500](err, res);
-      //       console.log("Successful response to DELETE request at /user/" + userid + "/files")
-      //       res.json(files);
-      //     });
-      //   }
-      // });
     });
 
   router.route("/:user/files/:file")
@@ -156,33 +128,19 @@ module.exports = function(router, s3) {
         });
     })
     .put(function(req, res) {
-      var userid = req.params.user;
-      var fileid = req.params.file;
-      User.findOneAndUpdate(
-        {_id: userid, "files._id": fileid},
-        {"$set": {"files.$": req.body} },
-        function(err, data) {
-          if (err) handle[500](err, res);
-          else {
-            console.log("Successful response to PUT request at /user/" + userid + "/files/" + fileid);
-            res.json(data);
-          }
-        }
-      );
-      // User.findById(userid, function(err, user) {
-      //   if (err) handle[500](err, res);
-      //   else {
-      //     var file = user.files.id(fileid);
-      //     user.files._id(fileid) = req.body;
-      //     user.save(function(err, data) {
-      //       if (err) handle[500](err, res);
-      //       else {
-      //         console.log("Successful response to PUT request at /user/" + userid + "/files/" + fileid);
-      //         res.json(file);
-      //       }
-      //     });
+      // var userid = req.params.user;
+      // var fileid = req.params.file;
+      // User.findOneAndUpdate(
+      //   {_id: userid, "files._id": fileid},
+      //   {"$set": {"files.$": req.body} },
+      //   function(err, data) {
+      //     if (err) handle[500](err, res);
+      //     else {
+      //       console.log("Successful response to PUT request at /user/" + userid + "/files/" + fileid);
+      //       res.json(data);
+      //     }
       //   }
-      // });
+      // );
     })
     .delete(function(req, res) {
       var userid = req.params.user;
