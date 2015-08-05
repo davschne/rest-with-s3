@@ -6,13 +6,13 @@ var app = require("../index");
 
 chai.use(require("chai-http"));
 
-var dummyUser = {"_id": "Dummy", "email": "dummy@dumb.com", "files": []};
-var modifiedUser = {"email": "dumb@dumbo.dum"};
-var id; // capture on POST for later use
+var dummyUser = {"_id": "Idiot", "email": "idiot@idiocy.com", "files": []};
+var modifiedUser = {"_id": "Moron", "email": "moron@idiocy.com"};
 
-describe("index.js", function() {
-  describe("/users", function() {
-    it("should respond to a well-formed POST request with status 200 and the data sent as JSON", function(done) {
+describe("/users", function() {
+
+  describe("POST", function() {
+    it("should create a new user document in Mongo and respond with status 200 and a JSON object of the new document", function(done) {
       chai.request(url)
         .post("/users")
         .type("json")
@@ -21,11 +21,13 @@ describe("index.js", function() {
           expect(err).to.be.null;
           expect(res).to.have.status(200);
           expect(res).to.be.json;
-          // id = res.body._id;
           done();
         });
     });
-    it("should respond to a GET request with status 200 and a JSON array of all users", function(done) {
+  });
+
+  describe("GET", function() {
+    it("should respond with status 200 and a JSON array of all users with 'files' property populated, including links to the contents of each file on S3", function(done) {
       chai.request(url)
         .get("/users")
         .end(function(err, res) {
@@ -37,8 +39,12 @@ describe("index.js", function() {
         });
     });
   });
-  describe("/users/:user", function() {
-    it("should respond to a well-formed PUT request with status 200 and the record being replaced as JSON", function(done) {
+});
+
+describe("/users/:user", function() {
+
+  describe("PUT", function() {
+    it("should replace an existing user document in Mongo, modifying each file document associated with that user as well as the file paths in S3 if the user's _id property is changed, then return a JSON object of the modified user document with 'files' property populated, including links to the file contents in S3", function(done) {
       chai.request(url)
         .put("/users/" + dummyUser._id)
         .type("json")
@@ -51,7 +57,10 @@ describe("index.js", function() {
           done();
         });
     });
-    it("should respond to a well-formed GET request with status 200 and the record of the requested user as JSON", function(done) {
+  });
+
+  describe("GET", function() {
+    it("should respond with status 200 and a JSON object of user document with 'files' property populated, including links to each file's contents in S3", function(done) {
       chai.request(url)
         .get("/users/" + dummyUser._id)
         .end(function(err, res) {
@@ -62,7 +71,10 @@ describe("index.js", function() {
           done();
         });
     });
-    it("should respond to a well-formed DELETE request with status 200 and a JSON response", function(done) {
+  });
+
+  describe("DELETE", function() {
+    it("should remove a user document and all files created by the user, including both documents in Mongo and the associated objects in S3, then respond with status 200 and a JSON object of the deleted user's record with 'files' property populated", function(done) {
       chai.request(url)
         .delete("/users/" + dummyUser._id)
         .end(function(err, res) {
